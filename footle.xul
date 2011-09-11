@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="http://localhost/footle/style/footle.css" type="text/css"?>
+
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        title="Footle" >
+
+  <vbox>
+    <menubar>
+      <menu label="File" accesskey="f" >
+        <menupopup>
+          <menuitem id="open-menuitem" label="Open" />
+          <menuitem id="breakpoint-menuitem" label="Breakpoint" />
+          <menuseparator />
+          <menuitem id="exit-menuitem" label="Exit" />
+        </menupopup>
+      </menu>
+    </menubar>
+
+    <popupset>
+      <menupopup id="test-menupopup" >
+        <menuitem label="Bar" tooltiptext="Foo bar" />
+        <menuitem label="Baz" />
+      </menupopup>
+    </popupset>
+
+    <tabbox>
+      <tabs>
+      </tabs>
+
+      <tabpanels>
+      </tabpanels>
+    </tabbox>
+
+  </vbox>
+
+  <script src="http://localhost/footle/scripts/jquery-xul.js" ></script>
+  <script>
+<![CDATA[
+    jQuery().ready(function() {
+
+        jQuery('#exit-menuitem').bind('command', function(event) {
+            jQuery('#foo-table').attr("border", "1");
+        });
+
+        jQuery('#open-menuitem').bind('command', function(event) {
+          jQuery('tabs').append(jQuery('<tab>').attr('label', 'Code'));
+
+          var code_block = document.createElementNS('http://www.w3.org/1999/xhtml', 'html:div');
+          code_block.setAttribute('class', 'thecode');
+          jQuery('tabpanels').append(jQuery('<tabpanel>').append(code_block));
+;
+          netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+          var nsIFilePicker = Components.interfaces.nsIFilePicker;
+          var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+          fp.init(window, "Select a File", nsIFilePicker.modeOpen);
+
+          var res = fp.show();
+          if (res == nsIFilePicker.returnOK) {
+               var file_content = getFile(fp.file);
+               var line = '';
+               var line_div = '';
+
+               var line_list = file_content.split(/\n/);
+
+               jQuery('#thecode').empty();
+               for (line_number in line_list) {
+                   line_div = createLine(line_number, line_list[line_number]);
+                   code_block.appendChild(line_div);
+               }
+
+          }
+        });
+
+        jQuery('.code-line').live('click', function(event_obj) {
+            jQuery(this).css('background', 'lightgreen');
+        });
+    });
+
+    function getFile(file) {
+        var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
+        var sstream = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance(Components.interfaces.nsIScriptableInputStream);
+
+        fstream.init(file, 1, 00004, null);
+        sstream.init(fstream);
+
+console.log(file.path);
+        var output = sstream.read(sstream.available());
+
+        sstream.close();
+        fstream.close();
+
+        return output;
+    }
+
+    function createLine(linenumber, line) {
+        /**
+         *
+
+        <div class="code-line" style="display : block;">
+          <span id="line-no-N" class="line-number">linenumber</span>
+          <span id="code-line-N" class="code-snippet">line</span>
+        </div>
+
+         *
+         */
+
+        var line_num_cat = spacify(linenumber);
+
+        var ns = 'http://www.w3.org/1999/xhtml';
+
+        var line_number_element = document.createElementNS(ns, 'html:span');
+        var line_number_style = "margin-left : " + line_num_cat + "em; margin-right : 2em";
+        line_number_element.setAttribute('class', 'line-number');
+        var line_number_attr = { class : "line-number", style : line_number_style };
+        line_number_element.setAttribute('style', line_number_style);
+        line_number_element.appendChild(document.createTextNode(linenumber));
+
+        var line_content_element = document.createElementNS(ns, 'html:span');
+        line_content_element.appendChild(document.createTextNode(line));
+        line_content_element.setAttribute('class', 'code-snippet');
+        var line_content_style = "border-left-style : thin ;";
+        //line_content_element.setAttribute('style', line_content_style);
+
+        var line_element = document.createElementNS(ns, 'html:div');
+        line_element.setAttribute('class', 'code-line');
+
+        line_element.appendChild(line_number_element);
+        line_element.appendChild(line_content_element);
+
+        return line_element;
+    }
+
+    function spacify(line_number) {
+        if (10 > line_number) {
+            return 3;
+        }
+        else if (100 > line_number) {
+            return 2.5;
+        }
+        else if (1000 > line_number) {
+            return 1.5;
+        }
+        else {
+            return 0;
+        }
+    }
+]]>
+  </script>
+
+</window>
+

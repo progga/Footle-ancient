@@ -1,0 +1,26 @@
+
+.code-line:hover
+{
+    background : gold;
+}
+
+.code-line
+{
+    background : white;
+
+    display : block;
+    width : 700px;
+}
+
+.code-snippet
+{
+    white-space : pre;
+}
+
+.thecode
+{
+    height : 550px;
+    overflow : auto;
+}
+
+

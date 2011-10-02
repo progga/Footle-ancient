@@ -7,6 +7,10 @@
 .code-line
 {
     background : white;
+    cursor : pointer;
+
+    font-size : 12px;
+    line-height : 1.4;
 
     display : block;
     width : 700px;
@@ -14,6 +18,9 @@
 
 .code-snippet
 {
+    color : #999;
+    font-weight : 700;
+
     white-space : pre;
 }
 
@@ -21,6 +28,17 @@
 {
     height : 550px;
     overflow : auto;
+}
+
+.line-number
+{
+    color : #787878;
+    background : #ECECEC;
+    padding-right : 1em;
+
+    font-family : monospace;
+
+    margin-right : 2em;
 }
 
 

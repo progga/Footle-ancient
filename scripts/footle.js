@@ -4,8 +4,11 @@
  * inside Firefox.  All the jQuery code used here relies on the
  * jquery-xul library from https://github.com/ilyakharlamov/jquery-xul
  *
- * @version 2011-10-02
+ * @version 2011-10-06
  */
+
+var debugger_obj = new debugger7();
+
 
 /**
  * Initialization function.
@@ -23,31 +26,26 @@ jQuery().ready(function() {
      * Event handler for the 'Open' menu item.
      */
     jQuery('#open-menuitem').bind('command', function(event) {
-        jQuery('tabs').append(jQuery('<tab>').attr('label', 'Code'));
 
         var code_block = document.createElementNS('http://www.w3.org/1999/xhtml', 'html:div');
         code_block.setAttribute('class', 'thecode');
-        jQuery('tabpanels').append(jQuery('<tabpanel>').append(code_block));
-;
-        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-        var nsIFilePicker = Components.interfaces.nsIFilePicker;
-        var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-        fp.init(window, "Select a File", nsIFilePicker.modeOpen);
 
-        var res = fp.show();
-        if (res == nsIFilePicker.returnOK) {
-            var file_content = getFile(fp.file);
-            var line = '';
-            var line_div = '';
-            var line_number = 0;
+        var file_data = getFileData();
+        if (file_data)
+        {
+            var line_list = file_data.content.split(/\n/);
 
-            var line_list = file_content.split(/\n/);
-
-            jQuery('#thecode').empty();
             for (line_number in line_list) {
                 line_div = createLine(line_number, line_list[line_number]);
                 code_block.appendChild(line_div);
             }
+
+            // Create a new tab.
+            jQuery('tabpanels').append(jQuery('<tabpanel>').append(code_block));
+            jQuery('tabs').append(jQuery('<tab>').attr('label', file_data.filename));
+
+            // Now select this tab.
+            jQuery('tabs tab:last').click();
         }
     });
 
@@ -58,8 +56,44 @@ jQuery().ready(function() {
      */
     jQuery('.code-line').live('click', function(event_obj) {
         jQuery(this).css('background', 'lightgreen');
+
+        //random_number = Math.floor(Math.random() * (300+ 1)) + 0;
+        //debugger_obj.set_breakpoint(random_number, file_obj.filename);
     });
 });
+
+
+/**
+ * Return a file handler.  The file has been opened by the
+ * user.
+ *
+ * @return bool/nsIFile
+ */
+function getFileData()
+{
+    netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+    var nsIFilePicker = Components.interfaces.nsIFilePicker;
+    var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+    fp.init(window, "Select a File", nsIFilePicker.modeOpen);
+
+    var res = fp.show();
+
+    if (res === nsIFilePicker.returnOK) {
+        var path_parts = fp.file.path.split('/');
+        var filename = path_parts[path_parts.length - 1];
+
+        var file_content = getFileContent(fp.file);
+
+        return { 'filepath' : fp.file.path,
+            'filename' : filename,
+            'content' : file_content,
+        };
+    }
+    else
+    {
+        return false;
+    }
+}
 
 
 /**
@@ -69,7 +103,7 @@ jQuery().ready(function() {
  *    This is the file to open.
  * @return string
  */
-function getFile(file)
+function getFileContent(file)
 {
     var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
     var sstream = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance(Components.interfaces.nsIScriptableInputStream);
@@ -156,5 +190,28 @@ function spacify(line_number)
         return line_number;
     }
 }
+
+
+/**
+ * Debugger class.
+ *
+ * Talks to both the debugger UI and xdebug.
+ */
+function debugger7()
+{
+    this.pending_breakpoints = new Array();
+}
+
+
+/**
+ * Setter method for breakpoints.
+ */
+debugger7.prototype.set_breakpoint = function(line_number, filename)
+{
+    var breakpoint_data = {'line_number' : line_number, 'filename' : filename};
+
+    this.pending_breakpoints.push(breakpoint_data);
+};
+
 
 

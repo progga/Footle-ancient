@@ -21,12 +21,82 @@ function debugger7()
 
 
 /**
+ * These commands are sent at the beginning of the debugging session.
+ */
+debugger7.prototype.init_commands = function()
+{
+    var command = {'command' : '', 'args' : []};
+    this.command_queue.push(command);
+}
+
+
+debugger7.prototype.run = function()
+{
+    var command = {'command' : 'run', 'args' : []};
+    this.command_queue.push(command);
+
+    this.send_all_commands();
+}
+
+
+debugger7.prototype.end = function()
+{
+    var command = {'command' : 'stop', 'args' : []};
+    this.command_queue.push(command);
+
+    this.send_all_commands();
+}
+
+
+debugger7.prototype.set_breakpoint = function(filepath, line_num)
+{
+    var args = ['-f', filepath, '-l', line_num];
+    var command = {'set_breakpoint' : '', 'args' : args};
+    this.command_queue.push(command);
+
+    this.send_all_commands();
+}
+
+
+/**
  * Want to send any command to the debugger?  Give it to me.
  */
 debugger7.prototype.queue_command = function(command, args)
 {
     var command_data = { 'command' : command, 'args' : args };
     this.command_queue.push(command_data);
+}
+
+
+/**
+ * Send all queued commands to the debugger.
+ */
+debugger7.prototype.send_all_commands = function()
+{
+    var command              = '';
+    var dbgp_command         = '';
+    var trimmed_dbgp_command = '';
+    var args                 = [];
+    var joined_args          = '';
+    var command_data         = {}
+
+    while (command_data = this.command_queue.shift())
+    {
+        command = command_data.command;
+        args    = command_data.args;
+        joined_args = args.join(' ');
+
+        dbgp_command = command + ' ' + args.join(' ');
+
+        /**
+         * The call to jQuery.trim() is necessary because any
+         * trailing space character here will produce an unacceptable
+         * command string later.  Example - "run -i 6" is allowed, but
+         * "run  -i 6" is not.
+         */
+        trimmed_dbgp_command = jQuery.trim(dbgp_command);
+        this.send_single_command(trimmed_dbgp_command);
+    }
 }
 
 
@@ -46,34 +116,13 @@ debugger7.prototype.send_single_command = function(command)
 
 
 /**
- * Send all queued commands to the debugger.
- */
-debugger7.prototype.send_commands = function()
-{
-    var command = '';
-    var dbgp_command = '';
-    var args    = [];
-    var command_data = {}
-
-    while (command_data = this.command_queue.shift())
-    {
-        command = command_data.command;
-        args    = command_data.args;
-
-        dbgp_command = command + ' ' + args.join(' ');
-        this.send_single_command(dbgp_command);
-    }
-}
-
-
-/**
  * Setter function for protocol_manager.
  */
 debugger7.prototype.set_protocol_manager = function(proto_manager)
 {
     this.protocol_manager = proto_manager;
 
-    //this.protocol_manager.set_outreach(this.command_dispatcher);
+    this.protocol_manager.set_outreach(this.command_dispatcher);
 }
 
 
@@ -93,16 +142,6 @@ debugger7.prototype.command_dispatcher = function(data)
 debugger7.prototype.set_state = function(state)
 {
     this.current_state = state;
-}
-
-
-/**
- * These commands are sent at the beginning of the debugging session.
- */
-debugger7.prototype.init_commands = function()
-{
-    var command = {'command' : '', args : ''};
-    this.command_queue.push(command);
 }
 
 

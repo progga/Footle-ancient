@@ -2,7 +2,7 @@
 /**
  * Debugger object that talks to a dbgp debugger.
  *
- * @version 2011-10-13
+ * @version 2011-10-20
  */
 
 
@@ -16,7 +16,7 @@ function debugger7()
     this.protocol_manager = null;
 
     // Possible states - on-air, off-air, breakpoint
-    this.current_state = 'off-air';
+    this.current_state = {'state' : 'off-air', 'data' : {}};
 }
 
 
@@ -51,7 +51,7 @@ debugger7.prototype.end = function()
 debugger7.prototype.set_breakpoint = function(filepath, line_num)
 {
     var args = ['-f', filepath, '-l', line_num];
-    var command = {'set_breakpoint' : '', 'args' : args};
+    var command = {'breakpoint_set' : '', 'args' : args};
     this.command_queue.push(command);
 
     this.send_all_commands();
@@ -139,9 +139,10 @@ debugger7.prototype.command_dispatcher = function(data)
 /**
  * Setter function for current_state.
  */
-debugger7.prototype.set_state = function(state)
+debugger7.prototype.set_state = function(state_data)
 {
-    this.current_state = state;
+    this.current_state.state = state_data.name;
+    this.current_state.data  = state_data;
 }
 
 

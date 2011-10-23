@@ -131,6 +131,11 @@ dbgp.prototype.determine_state_machine_state = function(response)
     {
         state.name = 'at-breakpoint';
     }
+    else if ('response' === response.name &&
+                'breakpoint_set' === response.command)
+    {
+        state.name = 'nochange';
+    }
     else if ('response' === response.name && response.error.length)
     {
         state.name = 'error';
@@ -154,7 +159,7 @@ dbgp.prototype.parse_dbgp_xml = function(dbgp_xml_obj)
         'command_id'     : null,
         'error'          : null,
     };
-
+console.log(dbgp_xml_obj.toXMLString());
     result.name = dbgp_xml_obj.name().localName;
 
     if (dbgp_xml_obj.@command.length())

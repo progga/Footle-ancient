@@ -50,10 +50,9 @@ debugger7.prototype.end = function()
 
 debugger7.prototype.set_breakpoint = function(filepath, line_num)
 {
-    var args = ['-f', filepath, '-l', line_num];
-    var command = {'breakpoint_set' : '', 'args' : args};
-    this.command_queue.push(command);
+    var args = ['-t', 'line', '-f', filepath, '-n', line_num];
 
+    this.queue_command('breakpoint_set', args);
     this.send_all_commands();
 }
 

@@ -7,38 +7,33 @@
         title="Footle" >
 
   <vbox>
-    <menubar>
-      <menu label="File" accesskey="f" >
-        <menupopup>
-          <menuitem id="open-menuitem" label="Open" />
-          <menuitem id="breakpoint-menuitem" label="Breakpoint" />
-          <menuseparator />
-          <menuitem id="exit-menuitem" label="Exit" />
-        </menupopup>
-      </menu>
-    </menubar>
-
-    <popupset>
-      <menupopup id="test-menupopup" >
-        <menuitem label="Bar" tooltiptext="Foo bar" />
-        <menuitem label="Baz" />
-      </menupopup>
-    </popupset>
-
-    <tabbox>
-      <tabs>
-      </tabs>
+    <tabbox id="code-tab-container">
+      <hbox>
+        <tabs>
+          <tab id="tab-0" class="code-tab" label="Empty" context="tab-menu-popup" linkedPanel="tab-panel-0" />
+        </tabs>
+        <toolbarbutton id="new-tab-opener" label="+" />
+      </hbox>
 
       <tabpanels>
+        <tabpanel id="tab-panel-0">
+          <button class="file-open-button" label="Open file" />
+        </tabpanel>
       </tabpanels>
     </tabbox>
-
   </vbox>
+
+  <popupset>
+    <menupopup id="tab-menu-popup" >
+      <menuitem label="Close tab" id="current-tab-closer" tooltiptext="Closes this tab" />
+      <menuitem label="Close other tabs" />
+    </menupopup>
+  </popupset>
 
   <html:style>
   </html:style>
 
-  <script src="file:///home/ju/xul/footle/scripts/jquery-xul.js" ></script>
+  <script src="file:///home/ju/xul/footle/scripts/libs/jquery-xul.js" ></script>
   <script src="file:///home/ju/xul/footle/scripts/footle.js" ></script>
 
 </window>

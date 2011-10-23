@@ -4,7 +4,7 @@
  * inside Firefox.  All the jQuery code used here relies on the
  * jquery-xul library from https://github.com/ilyakharlamov/jquery-xul
  *
- * @version 2011-10-06
+ * @version 2011-10-23
  */
 
 var debugger_obj = new debugger7();
@@ -25,7 +25,7 @@ jQuery().ready(function() {
     /**
      * Event handler for the 'Open' menu item.
      */
-    jQuery('#open-menuitem').bind('command', function(event) {
+    jQuery('.file-open-button').bind('command', function(event) {
 
         var code_block = document.createElementNS('http://www.w3.org/1999/xhtml', 'html:div');
         code_block.setAttribute('class', 'thecode');
@@ -60,6 +60,41 @@ jQuery().ready(function() {
         //random_number = Math.floor(Math.random() * (300+ 1)) + 0;
         //debugger_obj.set_breakpoint(random_number, file_obj.filename);
     });
+
+
+    /**
+     * Event handler for the "Plus" tab.  This adds a new tab.
+     */
+    jQuery('#new-tab-opener').bind('command', function(event_obj) {
+        var time_obj = new Date();
+        var sec = time_obj.getSeconds();
+        var panel_id = 'tab-panel-' + sec;
+        jQuery('tabpanels').append(jQuery('<tabpanel>').attr('id', panel_id).append(jQuery('<label>').attr('value', sec)));
+
+        var tab_attr = {'label' : 'Empty', 'context' : 'tab-menu-popup', 'class' : 'code-tab',
+            'linkedPanel' : panel_id, }
+        jQuery('tabs').append(jQuery('<tab>').attr(tab_attr));
+
+        jQuery('tab.code-tab:last').click();
+    });
+
+
+    /**
+     * Event handler for the tab closing menu item.
+     */
+    jQuery('#current-tab-closer').bind('command', function(event_obj) {
+
+        var tab_item_to_close = jQuery(document.popupNode);
+        var panel_id = tab_item_to_close.attr('linkedPanel');
+
+        jQuery('tabpanel#' + panel_id).remove();
+        jQuery(tab_item_to_close).remove();
+
+        jQuery('tabpanels').attr('selectedIndex', 0);
+        jQuery('tabbox').attr('selectedIndex', 0);
+
+        jQuery('tab.code-tab:first').click();
+    })
 });
 
 

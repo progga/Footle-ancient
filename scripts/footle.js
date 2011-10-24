@@ -4,10 +4,8 @@
  * inside Firefox.  All the jQuery code used here relies on the
  * jquery-xul library from https://github.com/ilyakharlamov/jquery-xul
  *
- * @version 2011-10-23
+ * @version 2011-10-24
  */
-
-var debugger_obj = new debugger7();
 
 
 /**
@@ -18,37 +16,14 @@ jQuery().ready(function() {
     /**
      * Event handler for the 'Exit' menu item.
      */
-    jQuery('#exit-menuitem').bind('command', function(event) {
+    jQuery('#exit-menuitem').bind('command', function(event_obj) {
         jQuery('#foo-table').attr("border", "1");
     });
 
     /**
      * Event handler for the 'Open' menu item.
      */
-    jQuery('.file-open-button').bind('command', function(event) {
-
-        var code_block = document.createElementNS('http://www.w3.org/1999/xhtml', 'html:div');
-        code_block.setAttribute('class', 'thecode');
-
-        var file_data = getFileData();
-        if (file_data)
-        {
-            var line_list = file_data.content.split(/\n/);
-
-            for (line_number in line_list) {
-                line_div = createLine(line_number, line_list[line_number]);
-                code_block.appendChild(line_div);
-            }
-
-            // Create a new tab.
-            jQuery('tabpanels').append(jQuery('<tabpanel>').append(code_block));
-            jQuery('tabs').append(jQuery('<tab>').attr('label', file_data.filename));
-
-            // Now select this tab.
-            jQuery('tabs tab:last').click();
-        }
-    });
-
+    jQuery('.file-open-button').bind('command', file_opener);
 
     /**
      * Event handler for the 'click' event on any line of source code
@@ -69,11 +44,14 @@ jQuery().ready(function() {
         var time_obj = new Date();
         var sec = time_obj.getSeconds();
         var panel_id = 'tab-panel-' + sec;
-        jQuery('tabpanels').append(jQuery('<tabpanel>').attr('id', panel_id).append(jQuery('<label>').attr('value', sec)));
+        jQuery('tabpanels').append(jQuery('<tabpanel>').attr('id', panel_id).append(jQuery('<button>').attr('label', 'Open file').attr('class', 'file-open-button').bind('command', file_opener)));
 
         var tab_attr = {'label' : 'Empty', 'context' : 'tab-menu-popup', 'class' : 'code-tab',
             'linkedPanel' : panel_id, }
-        jQuery('tabs').append(jQuery('<tab>').attr(tab_attr));
+        var new_tab = jQuery('<tab>').attr(tab_attr).bind('contextmenu', function(event_obj) {
+            jQuery(this).click();
+        });
+        jQuery('tabs').append(new_tab);
 
         jQuery('tab.code-tab:last').click();
     });
@@ -90,10 +68,7 @@ jQuery().ready(function() {
         jQuery('tabpanel#' + panel_id).remove();
         jQuery(tab_item_to_close).remove();
 
-        jQuery('tabpanels').attr('selectedIndex', 0);
-        jQuery('tabbox').attr('selectedIndex', 0);
-
-        jQuery('tab.code-tab:first').click();
+        jQuery('tab.code-tab:last').click();
     })
 });
 
@@ -227,26 +202,28 @@ function spacify(line_number)
 }
 
 
-/**
- * Debugger class.
- *
- * Talks to both the debugger UI and xdebug.
- */
-function debugger7()
+function file_opener(event_obj)
 {
-    this.pending_breakpoints = new Array();
+    var code_block = document.createElementNS('http://www.w3.org/1999/xhtml', 'html:div');
+    code_block.setAttribute('class', 'thecode');
+
+    var file_data = getFileData();
+    if (file_data)
+    {
+        var line_list = file_data.content.split(/\n/);
+
+        for (line_number in line_list) {
+            line_div = createLine(line_number, line_list[line_number]);
+            code_block.appendChild(line_div);
+        }
+
+        var tabpanel = jQuery(this).closest('tabpanel');
+        tabpanel.empty().append(code_block);
+
+        var tabpanel_index = tabpanel.index();
+        var corresponding_tab = jQuery('tab.code-tab:eq(' + tabpanel_index + ')');
+        corresponding_tab.attr('label', file_data.filename);
+    }
 }
-
-
-/**
- * Setter method for breakpoints.
- */
-debugger7.prototype.set_breakpoint = function(line_number, filename)
-{
-    var breakpoint_data = {'line_number' : line_number, 'filename' : filename};
-
-    this.pending_breakpoints.push(breakpoint_data);
-};
-
 
 
